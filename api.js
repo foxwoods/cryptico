@@ -311,7 +311,7 @@ var cryptico = (function() {
             plaintext += signString;
         }
         cipherblock += my.encryptAESCBC(plaintext, aeskey);    
-        return {status: "success", cipher: cipherblock};
+        return {status: "success", cipher: cipherblock, aeskey: aeskey};
     }
 
     my.decrypt = function(ciphertext, key)
