@@ -3335,6 +3335,59 @@ var cryptico = (function() {
         return string;
     }
     
+    // Converts a string to a byte array.
+    my.string2utf8bytes = function(string)
+    {
+        var bytes = new Array();
+        var c = 0;
+        for(var i = 0; i < string.length; i++)
+        {
+            c = string.charCodeAt(i);
+            if (c < 128)
+            {
+                bytes.push(c);
+            }
+            else if ((c > 127) && (c < 2048))
+            {
+                bytes.push((c >> 6) | 192);
+                bytes.push((c & 63) | 128);
+            }
+            else
+            {
+                bytes.push((c >> 12) | 224);
+                bytes.push(((c >> 6) & 63) | 128);
+                bytes.push((c & 63) | 128);
+            }
+        }
+        return bytes;
+    }
+
+    // Converts a byte array to a string.
+    my.utf8bytes2string = function(bytes)
+    {
+        var string = "";
+        var c = 0;
+        for(var i = 0; i < bytes.length; i++)
+        {
+            c = bytes[i];
+            if (c < 128)
+            {
+                string += String.fromCharCode(c);
+            }
+            else if ((c > 191) && (c < 224))
+            {
+                string += String.fromCharCode(((c & 31) << 6) | (bytes[i + 1] & 63));
+                ++i;
+            }
+            else
+            {
+                string += String.fromCharCode(((c & 15) << 12) | ((bytes[i + 1] & 63) << 6) | (bytes[i + 2] & 63));
+                i += 2;
+            }
+        }
+        return string;
+    }
+
     // Returns a XOR b, where a and b are 16-byte byte arrays.
     my.blockXOR = function(a, b)
     {
@@ -3384,7 +3437,7 @@ var cryptico = (function() {
     {
         var exkey = key.slice(0);
         aes.ExpandKey(exkey);
-        var blocks = my.string2bytes(plaintext);
+        var blocks = my.string2utf8bytes(plaintext);
         blocks = my.pad16(blocks);
         var encryptedBlocks = my.blockIV();
         for(var i = 0; i < blocks.length/16; i++)
@@ -3416,7 +3469,7 @@ var cryptico = (function() {
             decryptedBlocks = decryptedBlocks.concat(tempBlock);
         }
         decryptedBlocks = my.depad(decryptedBlocks);
-        return my.bytes2string(decryptedBlocks);
+        return my.utf8bytes2string(decryptedBlocks);
     }
     
     // Wraps a string to 60 characters.
@@ -3532,6 +3585,7 @@ var cryptico = (function() {
     return my;
 
 }());
+
 
 
 
